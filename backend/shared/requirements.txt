@@ -1,0 +1,2 @@
+# No extra pip dependencies — pure Python stdlib.
+# This layer provides the shared calculation engine to all Lambda functions.

@@ -1,5 +1,6 @@
 // ── Charts for Analysis Results (Recharts) ───────────────────────────────────
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import React from 'react';
 import {
   AreaChart, Area, BarChart, Bar, LineChart, Line,
@@ -25,7 +26,7 @@ export function MonthlyComparisonChart({ data }: { data: MonthlyData[] }) {
           <XAxis dataKey="month" tick={{ fill: '#94a3b8', fontSize: 11 }} />
           <YAxis tickFormatter={v => `₹${(v / 1000).toFixed(0)}k`} tick={{ fill: '#94a3b8', fontSize: 11 }} />
           <Tooltip
-            formatter={(v: number) => [`₹${fmt(v)}`, '']}
+            formatter={(v: unknown) => [`₹${fmt(Number(v))}`, '']}
             contentStyle={{ background: '#1e293b', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px' }}
             labelStyle={{ color: '#e2e8f0' }}
           />
@@ -61,9 +62,11 @@ export function CashFlowChart({ data, paybackYear }: { data: number[]; paybackYe
           <XAxis dataKey="year" tick={{ fill: '#94a3b8', fontSize: 11 }} label={{ value: 'Year', position: 'insideBottom', offset: -2, fill: '#64748b', fontSize: 11 }} />
           <YAxis tickFormatter={v => fmtCr(v).replace('₹', '')} tick={{ fill: '#94a3b8', fontSize: 11 }} />
           <Tooltip
-            formatter={(v: number) => [fmtCr(v), 'Cash Flow']}
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            formatter={(v: any) => [fmtCr(Number(v)), 'Cash Flow']}
             contentStyle={{ background: '#1e293b', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px' }}
-            labelFormatter={(l) => `Year ${l}`}
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            labelFormatter={(l: any) => `Year ${l}`}
           />
           <ReferenceLine y={0} stroke="rgba(255,255,255,0.2)" strokeDasharray="4 4" />
           <ReferenceLine
@@ -99,9 +102,11 @@ export function SolarYieldChart({ kwhByYear }: { kwhByYear: number[] }) {
           <XAxis dataKey="year" tick={{ fill: '#94a3b8', fontSize: 11 }} label={{ value: 'Year', position: 'insideBottom', offset: -2, fill: '#64748b', fontSize: 11 }} />
           <YAxis tickFormatter={v => `${(v / 1000).toFixed(0)}k`} tick={{ fill: '#94a3b8', fontSize: 11 }} />
           <Tooltip
-            formatter={(v: number) => [`${fmt(v)} kWh`, 'Solar Generation']}
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            formatter={(v: any) => [`${fmt(Number(v))} kWh`, 'Solar Generation']}
             contentStyle={{ background: '#1e293b', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px' }}
-            labelFormatter={(l) => `Year ${l}`}
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            labelFormatter={(l: any) => `Year ${l}`}
           />
           <Line type="monotone" dataKey="kwh" stroke="#fbbf24" strokeWidth={2} dot={false} />
         </LineChart>
@@ -127,10 +132,11 @@ export function CostComparisonChart({ dg, solar, grid }: { dg: number; solar: nu
           <XAxis type="number" tickFormatter={v => `₹${v}`} tick={{ fill: '#94a3b8', fontSize: 11 }} />
           <YAxis type="category" dataKey="name" tick={{ fill: '#94a3b8', fontSize: 10 }} width={80} />
           <Tooltip
-            formatter={(v: number) => [`₹${v.toFixed(2)}/kWh`, 'Cost']}
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            formatter={(v: any) => [`₹${Number(v).toFixed(2)}/kWh`, 'Cost']}
             contentStyle={{ background: '#1e293b', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px' }}
           />
-          <Bar dataKey="cost" radius={[0, 6, 6, 0]} label={{ position: 'right', formatter: (v: number) => `₹${v.toFixed(2)}`, fill: '#94a3b8', fontSize: 11 }}>
+          <Bar dataKey="cost" radius={[0, 6, 6, 0]} label={{ position: 'right', formatter: (v: unknown) => `₹${Number(v).toFixed(2)}`, fill: '#94a3b8', fontSize: 11 }}>
             {data.map((entry, i) => <Cell key={i} fill={entry.fill} fillOpacity={0.85} />)}
           </Bar>
         </BarChart>

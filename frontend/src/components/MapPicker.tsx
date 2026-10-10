@@ -1,6 +1,6 @@
 // ── Roof Area Map (Leaflet + OpenStreetMap, no paid keys) ─────────────────────
 
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Map as MapIcon, Edit3, Trash2 } from 'lucide-react';
 
 // Dynamic import to avoid SSR issues
@@ -19,6 +19,7 @@ export function RoofMapPicker({ lat, lon, roofAreaM2, onAreaChange, onLocationCh
   const mapInstance = useRef<import('leaflet').Map | null>(null);
   const polygonRef = useRef<import('leaflet').Polygon | null>(null);
   const [drawing, setDrawing] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [points, setPoints] = useState<[number, number][]>([]);
   const [area, setArea] = useState(roofAreaM2);
   const [mapReady, setMapReady] = useState(false);
@@ -45,7 +46,8 @@ export function RoofMapPicker({ lat, lon, roofAreaM2, onAreaChange, onLocationCh
       L = leaflet;
 
       // Fix Leaflet default icon path in Vite
-      delete (L.Icon.Default.prototype as Record<string, unknown>)._getIconUrl;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      delete (L.Icon.Default.prototype as any)._getIconUrl;
       L.Icon.Default.mergeOptions({
         iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
         iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',

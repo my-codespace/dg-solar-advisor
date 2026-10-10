@@ -1,11 +1,10 @@
 // ── Step 2: DG Usage (Manual + Textract Upload) ──────────────────────────────
 
 import React, { useState, useRef } from 'react';
-import { Upload, FileText, AlertTriangle, CheckCircle2, RefreshCw } from 'lucide-react';
+import { Upload, FileText, AlertTriangle, RefreshCw } from 'lucide-react';
 import { InputField, Banner } from '../components/UI';
 import { useT } from '../i18n';
 import type { DGUsage, ExtractResponse, Lang } from '../types';
-import { DEFAULT_BATTERY_PARAMS } from '../constants';
 import { getPresignedUrl, uploadToS3, extractLogbook } from '../api';
 
 interface Props {

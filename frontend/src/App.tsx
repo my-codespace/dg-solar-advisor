@@ -107,6 +107,7 @@ export default function App() {
       setStep('analysis');
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
+      console.warn('Analysis API error (using demo fallback):', msg);
       // Fallback to demo if API unreachable
       setApiWarn(t('errorApi'));
       setResults({

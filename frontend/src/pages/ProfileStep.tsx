@@ -1,5 +1,6 @@
 // ── Step 1: Society Profile ────────────────────────────────────────────────────
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import React, { useState } from 'react';
 import { Building2, MapPin, Zap, Fuel } from 'lucide-react';
 import { InputField } from '../components/UI';

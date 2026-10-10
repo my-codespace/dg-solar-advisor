@@ -1,12 +1,13 @@
 // ── Step 3: Analysis Results ──────────────────────────────────────────────────
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import React, { useState } from 'react';
 import {
   Zap, Leaf, TrendingUp, Sun, Battery, DollarSign,
   ChevronDown, ChevronUp, ExternalLink, Info,
 } from 'lucide-react';
 import {
-  MetricCard, SectionHeader, Banner, SensitivitySlider, AssumptionNote, CardSkeleton,
+  MetricCard, SectionHeader, Banner, SensitivitySlider, AssumptionNote,
 } from '../components/UI';
 import { MonthlyComparisonChart, CashFlowChart, SolarYieldChart, CostComparisonChart } from '../components/Charts';
 import { useT, fmtCr, fmt } from '../i18n';
@@ -77,15 +78,15 @@ export function AnalysisStep({ lang, results, onSaveReport, onBack, saving, init
             icon={<DollarSign size={18} />}
           />
           <MetricCard
-            label="Annual Litres"
+            label={`Annual Litres`}
             value={`${fmt(dg.annual_litres)} L`}
-            sub={`@ ₹${results.dieselPriceRsPerL ?? '—'}/L`}
+            sub={`₹${dg.total_fuel_cost_rs > 0 ? (dg.total_fuel_cost_rs / dg.annual_litres).toFixed(0) : '—'}/L est.`}
             icon={<Zap size={18} />}
           />
           <MetricCard
             label="DG kWh Generated"
             value={`${fmt(dg.kwh_generated)} kWh`}
-            sub={`in ${results.periodMonths ?? '—'} months`}
+            sub="in the reported period"
             icon={<Zap size={18} />}
           />
         </div>

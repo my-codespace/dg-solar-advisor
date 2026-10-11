@@ -24,7 +24,31 @@ CORS_HEADERS = {
 
 TABLE_NAME = os.environ.get("REPORTS_TABLE", "sunswitch-reports")
 TTL_DAYS = int(os.environ.get("REPORT_TTL_DAYS", "90"))
-BEDROCK_MODEL_ID = os.environ.get("BEDROCK_MODEL_ID", "anthropic.claude-3-haiku-20240307-v1:0")
+BEDROCK_MODEL_ID = os.environ.get("BEDROCK_MODEL_ID", "us.amazon.nova-lite-v1:0")
+if "haiku" in BEDROCK_MODEL_ID.lower() or not BEDROCK_MODEL_ID:
+    BEDROCK_MODEL_ID = "us.amazon.nova-lite-v1:0"
+
+
+from decimal import Decimal
+
+def _floats_to_decimals(obj: Any) -> Any:
+    if isinstance(obj, float):
+        return Decimal(str(obj))
+    elif isinstance(obj, dict):
+        return {k: _floats_to_decimals(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [_floats_to_decimals(v) for v in obj]
+    return obj
+
+
+def _decimals_to_floats(obj: Any) -> Any:
+    if isinstance(obj, Decimal):
+        return float(obj)
+    elif isinstance(obj, dict):
+        return {k: _decimals_to_floats(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [_decimals_to_floats(v) for v in obj]
+    return obj
 
 
 def _resp(status: int, body: Any) -> dict:
@@ -81,19 +105,32 @@ Data:
 
 Write in clear, simple language that a non-technical RWA treasurer can understand and present at a committee meeting."""
 
-        body_payload = {
-            "anthropic_version": "bedrock-2023-05-31",
-            "max_tokens": 400,
-            "messages": [{"role": "user", "content": prompt}],
-        }
-        response = bedrock.invoke_model(
-            modelId=BEDROCK_MODEL_ID,
-            body=json.dumps(body_payload),
-            contentType="application/json",
-            accept="application/json",
-        )
-        resp_body = json.loads(response["body"].read())
-        return resp_body["content"][0]["text"]
+        if "nova" in BEDROCK_MODEL_ID:
+            body_payload = {
+                "messages": [{"role": "user", "content": [{"text": prompt}]}]
+            }
+            response = bedrock.invoke_model(
+                modelId=BEDROCK_MODEL_ID,
+                body=json.dumps(body_payload),
+                contentType="application/json",
+                accept="application/json",
+            )
+            resp_body = json.loads(response["body"].read())
+            return resp_body["output"]["message"]["content"][0]["text"]
+        else:
+            body_payload = {
+                "anthropic_version": "bedrock-2023-05-31",
+                "max_tokens": 400,
+                "messages": [{"role": "user", "content": prompt}],
+            }
+            response = bedrock.invoke_model(
+                modelId=BEDROCK_MODEL_ID,
+                body=json.dumps(body_payload),
+                contentType="application/json",
+                accept="application/json",
+            )
+            resp_body = json.loads(response["body"].read())
+            return resp_body["content"][0]["text"]
 
     except Exception as exc:
         # Deterministic fallback — clearly labeled
@@ -149,7 +186,7 @@ def handler(event: dict, context: Any) -> dict:
             item = resp.get("Item")
             if not item:
                 return _resp(404, {"error": f"Report '{report_id}' not found."})
-            return _resp(200, item)
+            return _resp(200, _decimals_to_floats(item))
         except ClientError as exc:
             return _resp(500, {"error": f"Database error: {exc}"})
 
@@ -185,7 +222,7 @@ def handler(event: dict, context: Any) -> dict:
 
         try:
             table = _dynamo().Table(TABLE_NAME)
-            table.put_item(Item=item)
+            table.put_item(Item=_floats_to_decimals(item))
         except ClientError as exc:
             return _resp(500, {"error": f"Could not save report: {exc}"})
 

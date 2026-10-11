@@ -72,7 +72,7 @@ export function DGUsageStep({ lang, initialData, batteryOutageHours, criticalLoa
     }],
   };
 
-  // ── Upload & Textract flow ─────────────────────────────────────────────────
+  // ── Upload & AI Extraction flow ───────────────────────────────────────────
   async function handleFileUpload(file: File) {
     setUploadError('');
     setApiUnavailable(false);
@@ -86,25 +86,22 @@ export function DGUsageStep({ lang, initialData, batteryOutageHours, criticalLoa
       if (result.tables.length > 0) {
         setEditedTable(result.tables[0].rows.map(row => row.map(cell => cell.text)));
       }
+      if (result.totalLitres && result.totalLitres > 0) {
+        update('litresConsumed', result.totalLitres);
+      }
+      if (result.totalHours && result.totalHours > 0) {
+        update('runningHours', result.totalHours);
+      }
+      if (result.periodMonths && result.periodMonths > 0) {
+        update('periodMonths', result.periodMonths);
+      }
       setUploadState('review');
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
-      const isSubscriptionPending = msg.includes('SubscriptionRequiredException');
-      const isApiMissing =
-        isSubscriptionPending ||
-        msg.includes('fetch') || msg.includes('network') || msg.includes('Failed to fetch') ||
-        msg.includes('500') || msg.includes('404') || msg.includes('VITE_API_BASE') ||
-        msg.includes('ERR_CONNECTION') || msg.includes('NetworkError') || !import.meta.env.VITE_API_BASE;
-
-      if (isApiMissing || !import.meta.env.VITE_API_BASE) {
-        // AWS service pending or offline — load demo data so user can review and proceed
+      if (!import.meta.env.VITE_API_BASE) {
+        // Local offline demo mode without backend
         setApiUnavailable(true);
-        const fallback = {
-          ...DEMO_EXTRACTION,
-          note: isSubscriptionPending
-            ? 'Amazon Textract subscription is currently pending on your AWS account. Showing sample extracted table so you can review and continue.'
-            : DEMO_EXTRACTION.note,
-        };
+        const fallback = DEMO_EXTRACTION;
         setExtractResult(fallback);
         setEditedTable(fallback.tables[0].rows.map(row => row.map(cell => cell.text)));
         setUploadError('');
@@ -200,15 +197,22 @@ export function DGUsageStep({ lang, initialData, batteryOutageHours, criticalLoa
           <p className="text-white font-medium">
             {uploadState === 'uploading' ? 'Uploading to secure storage…' : t('extracting')}
           </p>
-          <p className="text-slate-500 text-sm mt-1">Using Amazon Textract to read your document</p>
+          <p className="text-slate-500 text-sm mt-1">Using Amazon Bedrock Multimodal AI to read and analyze your logbook</p>
         </div>
       )}
 
-      {/* Textract review */}
+      {/* Extraction review */}
       {uploadState === 'review' && extractResult && (
         <div className="space-y-4 animate-fade-in">
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-white">{t('reviewData')}</h3>
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-2">
+            <div>
+              <h3 className="text-lg font-semibold text-white">{t('reviewData')}</h3>
+              {extractResult.extractedBy && (
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 mt-1 rounded-full text-xs font-medium bg-amber-500/10 text-amber-300 border border-amber-500/30">
+                  ✨ {extractResult.extractedBy}
+                </span>
+              )}
+            </div>
             <div className="flex items-center gap-2 text-sm">
               <span className="text-slate-400">Total cells: {extractResult.totalCells}</span>
               {extractResult.lowConfidenceCells > 0 && (
@@ -218,6 +222,10 @@ export function DGUsageStep({ lang, initialData, batteryOutageHours, criticalLoa
               )}
             </div>
           </div>
+
+          {extractResult.note && (
+            <Banner variant="info">{extractResult.note}</Banner>
+          )}
 
           {extractResult.lowConfidenceCells > 0 && (
             <Banner variant="warning">{t('lowConfNote')}</Banner>

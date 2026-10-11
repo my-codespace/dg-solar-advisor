@@ -40,10 +40,10 @@ Parameters:
 
   BedrockModelId:
     Type: String
-    Default: anthropic.claude-3-haiku-20240307-v1:0
+    Default: us.amazon.nova-lite-v1:0
     Description: >
-      Amazon Bedrock model ID for report generation.
-      Claude Haiku is cheapest. Change to claude-3-sonnet or claude-3-5-sonnet for higher quality.
+      Amazon Bedrock model ID for report generation and multimodal document extraction.
+      Amazon Nova Lite provides fast, low-cost vision and text generation.
 
   BedrockRegion:
     Type: String
@@ -181,9 +181,14 @@ Resources:
               Action:
                 - s3:GetObject
                 - s3:PutObject
+                - s3:ListBucket
               Resource:
                 - !Sub arn:aws:s3:::${UploadBucket}
                 - !Sub arn:aws:s3:::${UploadBucket}/*
+            - Effect: Allow
+              Action:
+                - bedrock:InvokeModel
+              Resource: '*'
       Events:
         ExtractPost:
           Type: Api
@@ -227,9 +232,7 @@ Resources:
             - Effect: Allow
               Action:
                 - bedrock:InvokeModel
-              Resource:
-                - !Sub arn:aws:bedrock:${BedrockRegion}::foundation-model/${BedrockModelId}
-                - arn:aws:bedrock:*::foundation-model/*
+              Resource: '*'
       Events:
         ReportPost:
           Type: Api

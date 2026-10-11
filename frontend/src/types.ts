@@ -156,6 +156,10 @@ export interface ExtractResponse {
   lowConfidenceCells: number;
   confidenceThreshold: number;
   previewUrl?: string;
+  totalLitres?: number;
+  totalHours?: number;
+  periodMonths?: number;
+  extractedBy?: string;
   note: string;
 }
 

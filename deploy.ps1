@@ -47,7 +47,7 @@ sam deploy `
     --capabilities CAPABILITY_IAM `
     --no-confirm-changeset `
     --resolve-s3 `
-    --parameter-overrides "Environment=$Env BedrockRegion=us-east-1"
+    --parameter-overrides "Environment=$Env BedrockRegion=us-east-1 BedrockModelId=us.amazon.nova-lite-v1:0"
 if ($LASTEXITCODE -ne 0) { Write-Host "SAM deploy failed!" -ForegroundColor Red; exit 1 }
 
 # 4. Get outputs

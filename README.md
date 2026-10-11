@@ -4,26 +4,29 @@
 [![AWS SAM](https://img.shields.io/badge/AWS-SAM-orange)](https://aws.amazon.com/serverless/sam/)
 [![Hackathon](https://img.shields.io/badge/Hackathon-Environmental%20Hacks%20x%20AWS-green)](https://wemakedevs.org/aws/env)
 
-> **Environmental Hacks x AWS Hackathon** · Tracks: **Air** + **Waste & Energy**
+> **Environmental Hacks x AWS Hackathon** · Tracks: **Air** + **Waste & Energy**  
+> 🌐 **Live Demo:** [https://master.d2s5glz92d1mf0.amplifyapp.com](https://master.d2s5glz92d1mf0.amplifyapp.com)  
+> ⚡ **API Gateway:** `https://uzok2zqm7c.execute-api.ap-south-1.amazonaws.com/dev`
 
 ## The Problem
 
-Housing societies across Delhi-NCR (Noida, Ghaziabad, Gurugram) rely on diesel generator (DG) sets for power backup. This is:
+Housing societies across Indian metros (Delhi-NCR, Noida, Gurugram, Ghaziabad) rely heavily on diesel generator (DG) sets during grid outages. Under CAQM / GRAP restrictions, this is:
 
-- **Expensive:** DG power costs ₹13–18/kWh vs. ₹8–9/kWh from the grid
-- **Polluting:** A typical 125 kVA DG set emits **48+ tonnes of CO₂/year** and raises local PM2.5
-- **Opaque:** RWA committees have no simple tool to see their real DG cost or whether solar + battery makes financial sense
+- **Expensive:** DG power costs **₹25–35+/kWh** vs. ₹7–8/kWh from the grid.
+- **Polluting:** A typical 125 kVA DG set emits **48+ tonnes of CO₂/year** and hazardous PM2.5 / NOx into residential air.
+- **Opaque:** RWA committees and residents have no easy tool to audit real diesel logbooks, calculate true generation costs, or evaluate the ROI of rooftop solar + battery backup.
 
 ## The Solution
 
-**SunSwitch** is a free web tool for RWA treasurers and secretaries. In under 5 minutes it produces:
+**SunSwitch** is a serverless web advisor built for RWA treasurers, secretaries, and residential communities. In under 3 minutes, it delivers:
 
-1. **Real DG cost per kWh** — including diesel + maintenance, annualised
-2. **DG emissions** — CO₂, PM2.5, NOx (all sourced/labeled)
-3. **Solar potential** — from NASA POWER free API, with PVGIS cross-check
-4. **Battery sizing** — for the society's typical outage hours
-5. **Financial analysis** — payback period, 25-year NPV, PM Surya Ghar subsidy estimate
-6. **Shareable bilingual report** — English + Hindi, printable for committee meetings
+1. **AI-Powered Logbook Extraction** — Upload handwritten DG logbook photos or scanned fuel bills; Amazon Bedrock Nova Lite multimodal AI extracts hours, litres, and dates automatically.
+2. **True DG Cost per kWh** — Fuel + maintenance amortized across actual kilowatt-hours generated.
+3. **NASA Satellite Solar Irradiance** — Ground-truth solar data queried live via NASA POWER API for the society's exact GPS coordinates.
+4. **Interactive Rooftop Sizing** — Integrated satellite map to measure usable rooftop area with polygon drawing.
+5. **Battery Backup Sizing** — Replaces polluting DG backup with clean LFP battery energy storage sized for outage duration.
+6. **Financial & Subsidy Engine** — Payback period, 25-year NPV, and central PM Surya Ghar Muft Bijli Yojana rooftop subsidies.
+7. **Bilingual Executive Report** — AI-generated plain-language executive summaries in English and Hindi, shareable via instant link and printable for AGM/committee meetings.
 
 ---
 
@@ -31,35 +34,32 @@ Housing societies across Delhi-NCR (Noida, Ghaziabad, Gurugram) rely on diesel g
 
 ```mermaid
 graph TD
-    U["RWA Treasurer (Browser)"] -->|HTTPS| AF[AWS Amplify Frontend]
-    AF -->|REST| AG[API Gateway]
-    AG --> AL["/analyze Lambda"]
-    AG --> EL["/extract-logbook Lambda"]
-    AG --> RL["/report Lambda"]
-    AL --> NASA[NASA POWER API - free]
-    AL --> PV[PVGIS API - free]
-    EL --> TX[Amazon Textract]
-    EL --> S3[S3 Upload Bucket]
-    RL --> DB[DynamoDB Reports Table]
-    RL --> BR[Amazon Bedrock Claude Haiku]
-    AL --> SL[Shared Lambda Layer]
+    U["RWA Treasurer / Secretary"] -->|HTTPS| AF[AWS Amplify Frontend - React + Vite]
+    AF -->|REST API| AG[Amazon API Gateway]
+    AG --> AL["AnalyzeFunction (Python 3.12)"]
+    AG --> EL["ExtractFunction (Python 3.12)"]
+    AG --> RL["ReportFunction (Python 3.12)"]
+    AL --> NASA[NASA POWER API - Satellite Irradiance]
+    EL --> S3[Amazon S3 Upload Bucket - 7-day Lifecycle]
+    EL --> BR1["Amazon Bedrock (Nova Lite Multimodal Vision)"]
+    RL --> DB[Amazon DynamoDB Reports Table - TTL 90d]
+    RL --> BR2["Amazon Bedrock (Nova Lite Bilingual Summary)"]
+    AL --> SL[Shared Calculation Layer]
     EL --> SL
     RL --> SL
-    BR -.->|fallback| TF[Template Fallback]
 ```
 
 ## AWS Services Used
 
-| Service | Purpose | Why |
+| Service | Role | Why Selected |
 |---|---|---|
-| **AWS SAM** | Infrastructure-as-code, one-command deploy | Open-source, hackathon eligible |
-| **API Gateway** | REST API for all endpoints | Managed, pay-per-request |
-| **Lambda (Python 3.12)** | `/analyze`, `/extract-logbook`, `/report` | Serverless, minimal cost |
-| **Amazon Textract** | Extract data from DG logbook photos | Handles handwriting, tables, forms |
-| **Amazon Bedrock (Claude Haiku)** | Generate plain-language summaries in English + Hindi | Cheapest Claude model; graceful fallback |
-| **DynamoDB** | Store saved reports with TTL | PAY_PER_REQUEST, no fixed cost |
-| **S3** | Logbook photo uploads via pre-signed URLs | 7-day lifecycle → no long-term PII |
-| **AWS Amplify Hosting** | Host React frontend | Git-connected CI/CD, free tier |
+| **AWS Amplify** | Global hosting & CI/CD for React Vite frontend | Instant Git deploys, global edge delivery |
+| **Amazon API Gateway** | Serverless REST API endpoints (`/analyze`, `/extract-logbook`, `/report`) | High throughput, managed CORS, pay-per-request |
+| **AWS Lambda (Python 3.12)** | Microservices execution with shared calculation layer | Cost-efficient, instant scaling, 0 idle cost |
+| **Amazon Bedrock (Nova Lite)** | Multimodal AI vision for logbook OCR & bilingual report generation | Parses handwritten Hindi/English tables + generates plain-language RWA summaries |
+| **Amazon DynamoDB** | Persistent report storage with 90-day TTL | Serverless on-demand NoSQL with automated record expiration |
+| **Amazon S3** | DG logbook and diesel bill uploads via pre-signed URLs | Regional endpoints with automated 7-day lifecycle cleanup for data privacy |
+| **AWS SAM** | Infrastructure as Code (IaC) | Declarative template, reproducible single-command deployment |
 
 ---
 
@@ -123,8 +123,8 @@ dg-solar-advisor/
 │   │   ├── irradiance.py        # NASA POWER + PVGIS API client
 │   │   └── test_calculations.py # 25+ unit tests, hand-verified
 │   ├── analyze/handler.py       # /analyze Lambda
-│   ├── extract/handler.py       # /extract-logbook Lambda (Textract)
-│   └── report/handler.py        # /report Lambda (DynamoDB + Bedrock)
+│   ├── extract/handler.py       # /extract-logbook Lambda (Bedrock Nova Lite Multimodal)
+│   └── report/handler.py        # /report Lambda (DynamoDB + Bedrock Nova Lite Summaries)
 ├── frontend/                    # React + Vite + TypeScript + Tailwind
 │   └── src/
 │       ├── App.tsx              # Step machine, demo mode

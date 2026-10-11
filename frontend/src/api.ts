@@ -33,10 +33,18 @@ export async function uploadToS3(
   presignedPost: { url: string; fields: Record<string, string> },
   file: File
 ): Promise<void> {
+  let targetUrl = presignedPost.url;
+  // Ensure the upload hits the regional S3 endpoint directly (ap-south-1).
+  // Hitting the generic s3.amazonaws.com causes a 307 Temporary Redirect which browsers block
+  // due to missing CORS headers on S3 redirect responses.
+  if (targetUrl.includes('.s3.amazonaws.com') && !targetUrl.includes('.s3.ap-south-1.amazonaws.com')) {
+    targetUrl = targetUrl.replace('.s3.amazonaws.com', '.s3.ap-south-1.amazonaws.com');
+  }
+
   const formData = new FormData();
   Object.entries(presignedPost.fields).forEach(([k, v]) => formData.append(k, v));
   formData.append('file', file);
-  const res = await fetch(presignedPost.url, { method: 'POST', body: formData });
+  const res = await fetch(targetUrl, { method: 'POST', body: formData });
   if (!res.ok) throw new Error(`S3 upload failed: ${res.status}`);
 }
 

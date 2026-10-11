@@ -75,6 +75,7 @@ export function DGUsageStep({ lang, initialData, batteryOutageHours, criticalLoa
   // ── Upload & Textract flow ─────────────────────────────────────────────────
   async function handleFileUpload(file: File) {
     setUploadError('');
+    setApiUnavailable(false);
     setUploadState('uploading');
     try {
       const { presignedPost, s3Key } = await getPresignedUrl(file.name, file.type);

@@ -144,12 +144,16 @@ def _get_text_from_block(block: dict, block_map: dict) -> str:
 def _get_presigned_url(s3_key: str, expiry: int = 300) -> str | None:
     """Generate pre-signed GET URL for the uploaded file (for frontend preview)."""
     try:
-        s3 = boto3.client("s3", region_name=os.environ.get("AWS_REGION", "ap-south-1"))
-        return s3.generate_presigned_url(
+        region = os.environ.get("AWS_REGION", "ap-south-1")
+        s3 = boto3.client("s3", region_name=region)
+        url = s3.generate_presigned_url(
             "get_object",
             Params={"Bucket": S3_BUCKET, "Key": s3_key},
             ExpiresIn=expiry,
         )
+        if url and ".s3.amazonaws.com" in url and f".s3.{region}.amazonaws.com" not in url:
+            url = url.replace(".s3.amazonaws.com", f".s3.{region}.amazonaws.com")
+        return url
     except Exception:
         return None
 
@@ -166,7 +170,8 @@ def handler(event: dict, context: Any) -> dict:
         import uuid
         s3_key = f"uploads/{uuid.uuid4()}/{filename}"
         try:
-            s3 = boto3.client("s3", region_name=os.environ.get("AWS_REGION", "ap-south-1"))
+            region = os.environ.get("AWS_REGION", "ap-south-1")
+            s3 = boto3.client("s3", region_name=region)
             presigned = s3.generate_presigned_post(
                 Bucket=S3_BUCKET,
                 Key=s3_key,
@@ -177,6 +182,8 @@ def handler(event: dict, context: Any) -> dict:
                 ],
                 ExpiresIn=600,
             )
+            if ".s3.amazonaws.com" in presigned.get("url", "") and f".s3.{region}.amazonaws.com" not in presigned.get("url", ""):
+                presigned["url"] = presigned["url"].replace(".s3.amazonaws.com", f".s3.{region}.amazonaws.com")
             return _resp(200, {"presignedPost": presigned, "s3Key": s3_key})
         except ClientError as exc:
             return _resp(500, {"error": f"Could not generate upload URL: {exc}"})

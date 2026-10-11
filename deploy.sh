@@ -16,11 +16,11 @@ echo "============================================"
 echo ""
 
 echo "[1/4] Building SAM application..."
-sam build --template infra/template.yaml --base-dir . --use-container false
+sam build --template infra/template.yaml
 
 echo "[2/4] Deploying to AWS (${REGION})..."
 sam deploy \
-    --template infra/template.yaml \
+    --template-file .aws-sam/build/template.yaml \
     --stack-name "${STACK_NAME}" \
     --region "${REGION}" \
     --capabilities CAPABILITY_IAM \

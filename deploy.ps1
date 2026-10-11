@@ -17,19 +17,31 @@ Write-Host "  SunSwitch Deploy  |  env=$Env  |  region=$Region" -ForegroundColor
 Write-Host "============================================" -ForegroundColor Cyan
 Write-Host ""
 
+# Ensure AWS CLI & SAM CLI are in PATH if installed in standard location
+if (-not (Get-Command sam -ErrorAction SilentlyContinue)) {
+    if (Test-Path "C:\Program Files\Amazon\AWSSAMCLI\bin") {
+        $env:PATH = "$env:PATH;C:\Program Files\Amazon\AWSSAMCLI\bin"
+    }
+}
+if (-not (Get-Command aws -ErrorAction SilentlyContinue)) {
+    if (Test-Path "C:\Program Files\Amazon\AWSCLIV2") {
+        $env:PATH = "$env:PATH;C:\Program Files\Amazon\AWSCLIV2"
+    }
+}
+
 # 1. Install Python deps check
 Write-Host "[1/4] Checking Python..." -ForegroundColor Yellow
 python --version
 
 # 2. SAM build
 Write-Host "[2/4] Building SAM application..." -ForegroundColor Yellow
-sam build --template infra/template.yaml --base-dir . --use-container false
+sam build --template infra/template.yaml
 if ($LASTEXITCODE -ne 0) { Write-Host "SAM build failed!" -ForegroundColor Red; exit 1 }
 
 # 3. SAM deploy
 Write-Host "[3/4] Deploying to AWS ($Region)..." -ForegroundColor Yellow
 sam deploy `
-    --template infra/template.yaml `
+    --template-file .aws-sam/build/template.yaml `
     --stack-name $StackName `
     --region $Region `
     --capabilities CAPABILITY_IAM `

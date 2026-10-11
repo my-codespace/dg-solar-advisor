@@ -12,7 +12,9 @@ import sys
 import traceback
 from typing import Any
 
-# Allow importing from shared/ when running in Lambda (layer path)
+# Allow importing from shared/ when running in Lambda (layer path /opt or /opt/python) or locally
+sys.path.insert(0, "/opt")
+sys.path.insert(0, "/opt/python")
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "shared"))
 
 from calculations import (

@@ -188,5 +188,7 @@ export const SENSITIVITY_SLIDERS: SliderConfig[] = [
   { key: 'annualDegradationRate', label: 'Panel Degradation', labelHi: 'पैनल क्षरण', min: 0.002, max: 0.01, step: 0.001, unit: '%/yr', defaultValue: 0.005 },
 ];
 
-// ── API endpoint (env-configurable) ─────────────────────────────────────────
-export const API_BASE = import.meta.env.VITE_API_BASE || '';
+// ── API endpoint (env-configurable with deployed AWS fallback) ───────────
+export const API_BASE =
+  import.meta.env.VITE_API_BASE ||
+  'https://uzok2zqm7c.execute-api.ap-south-1.amazonaws.com/dev';

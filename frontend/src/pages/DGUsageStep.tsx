@@ -98,18 +98,8 @@ export function DGUsageStep({ lang, initialData, batteryOutageHours, criticalLoa
       setUploadState('review');
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
-      if (!import.meta.env.VITE_API_BASE) {
-        // Local offline demo mode without backend
-        setApiUnavailable(true);
-        const fallback = DEMO_EXTRACTION;
-        setExtractResult(fallback);
-        setEditedTable(fallback.tables[0].rows.map(row => row.map(cell => cell.text)));
-        setUploadError('');
-        setUploadState('review');
-      } else {
-        setUploadError(`Extraction failed: ${msg || t('errorExtract')}`);
-        setUploadState('error');
-      }
+      setUploadError(`Extraction failed: ${msg || t('errorExtract')}`);
+      setUploadState('error');
     }
   }
 

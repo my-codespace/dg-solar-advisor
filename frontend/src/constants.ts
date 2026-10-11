@@ -125,8 +125,11 @@ export const DEMO_RESULTS: AnalysisResponse = {
   },
   financials: {
     solar_capacity_kw: 144,
-    gross_installation_cost_rs: 7920000,
-    subsidy_amount_rs: 2592000,
+    gross_installation_cost_rs: 7920000,   // 144 kW × ₹55,000/kW
+    subsidy_amount_rs: 2592000,            // 144 kW × ₹18,000/kW (PM Surya Ghar RWA rate)
+    // net = gross − subsidy + battery = ₹79.2L − ₹25.92L + ₹18.75L = ₹72.03L
+    // Battery cost (₹18.75L) is included here because it's part of the total project investment.
+    // The subsidy only covers solar panels, not battery storage.
     net_installation_cost_rs: 7203000,
     payback_years: 5.8,
     npv_rs: 8450000,
@@ -146,7 +149,7 @@ export const DEMO_RESULTS: AnalysisResponse = {
       }
       return cf;
     })(),
-    subsidy_note: 'PM Surya Ghar: ₹18,000/kW for RWA/common facilities, up to 500 kW. Verify at pmsuryaghar.gov.in.',
+    subsidy_note: 'PM Surya Ghar: ₹18,000/kW for RWA/common facilities, up to 500 kW. Net cost includes ₹18.75L battery (not subsidised). Verify subsidy at pmsuryaghar.gov.in.',
   },
   emissionFactors: {
     co2_kg_per_litre_diesel: { value: 2.68, unit: 'kg CO₂/litre', source: 'IPCC 2006 Guidelines' },

@@ -47,6 +47,26 @@ export function DGUsageStep({ lang, initialData, batteryOutageHours, criticalLoa
     return Object.keys(errs).length === 0;
   }
 
+  // Demo extraction data (used when AWS Textract API is not yet deployed)
+  const DEMO_EXTRACTION: ExtractResponse = {
+    numTables: 1,
+    totalCells: 15,
+    lowConfidenceCells: 3,
+    confidenceThreshold: 80,
+    note: 'Demo mode — real extraction requires AWS Textract deployment.',
+    keyValues: [],
+    tables: [{
+      num_rows: 5,
+      rows: [
+        [{ text: 'Month', confidence: 99, row: 0, col: 0, low_confidence: false }, { text: 'Litres', confidence: 99, row: 0, col: 1, low_confidence: false }, { text: 'Hours', confidence: 99, row: 0, col: 2, low_confidence: false }],
+        [{ text: 'Jan', confidence: 98, row: 1, col: 0, low_confidence: false }, { text: '1800', confidence: 97, row: 1, col: 1, low_confidence: false }, { text: '180', confidence: 96, row: 1, col: 2, low_confidence: false }],
+        [{ text: 'Feb', confidence: 98, row: 2, col: 0, low_confidence: false }, { text: '1600', confidence: 97, row: 2, col: 1, low_confidence: false }, { text: '160', confidence: 96, row: 2, col: 2, low_confidence: false }],
+        [{ text: 'Mar', confidence: 91, row: 3, col: 0, low_confidence: false }, { text: '1400', confidence: 88, row: 3, col: 1, low_confidence: false }, { text: '140', confidence: 92, row: 3, col: 2, low_confidence: false }],
+        [{ text: 'Apr', confidence: 76, row: 4, col: 0, low_confidence: true }, { text: '1200', confidence: 72, row: 4, col: 1, low_confidence: true }, { text: '120', confidence: 74, row: 4, col: 2, low_confidence: true }],
+      ],
+    }],
+  };
+
   // ── Upload & Textract flow ─────────────────────────────────────────────────
   async function handleFileUpload(file: File) {
     setUploadError('');
@@ -57,21 +77,28 @@ export function DGUsageStep({ lang, initialData, batteryOutageHours, criticalLoa
       setUploadState('extracting');
       const result = await extractLogbook(s3Key);
       setExtractResult(result);
-      // Populate editable table from first table
       if (result.tables.length > 0) {
         setEditedTable(result.tables[0].rows.map(row => row.map(cell => cell.text)));
       }
       setUploadState('review');
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
-      if (msg.includes('fetch') || msg.includes('network') || msg.includes('500')) {
+      const isApiMissing =
+        msg.includes('fetch') || msg.includes('network') || msg.includes('Failed to fetch') ||
+        msg.includes('500') || msg.includes('404') || msg.includes('VITE_API_BASE') ||
+        msg.includes('ERR_CONNECTION') || msg.includes('NetworkError') || !import.meta.env.VITE_API_BASE;
+
+      if (isApiMissing || !import.meta.env.VITE_API_BASE) {
+        // AWS not deployed yet — load demo data so the user can still test the flow
         setApiUnavailable(true);
-        setUploadError(t('errorExtract'));
-        setMode('manual');
+        setExtractResult(DEMO_EXTRACTION);
+        setEditedTable(DEMO_EXTRACTION.tables[0].rows.map(row => row.map(cell => cell.text)));
+        setUploadError('');
+        setUploadState('review');
       } else {
-        setUploadError(msg || t('errorExtract'));
+        setUploadError(`Extraction failed: ${msg || t('errorExtract')}`);
+        setUploadState('error');
       }
-      setUploadState('error');
     }
   }
 
@@ -96,7 +123,8 @@ export function DGUsageStep({ lang, initialData, batteryOutageHours, criticalLoa
 
       {apiUnavailable && (
         <Banner variant="warning">
-          {t('errorApi')} Switched to manual entry mode.
+          <strong>Demo mode:</strong> AWS backend not deployed yet — showing a sample extracted table below.
+          Review and edit the values, then enter your actual totals in the form below.
         </Banner>
       )}
 

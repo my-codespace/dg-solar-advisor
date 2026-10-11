@@ -142,11 +142,44 @@ export function AnalysisStep({ lang, results, onSaveReport, onBack, saving, init
 
       {/* ── Financial Section ─────────────────────────────────────────────────── */}
       <section>
-        <SectionHeader title="💹 Financial Analysis" subtitle="After PM Surya Ghar subsidy" />
+        <SectionHeader title="💹 Financial Analysis" subtitle="After PM Surya Ghar subsidy (solar panels only; battery is additional)" />
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
+          <MetricCard
+            label="Solar Panel Cost"
+            value={fmtCr(financials.gross_installation_cost_rs)}
+            sub={`${fmt(financials.solar_capacity_kw, 1)} kW × ₹55,000/kW`}
+            icon={<DollarSign size={18} />}
+          />
+          <MetricCard
+            label="PM Surya Ghar Subsidy"
+            value={`− ${fmtCr(financials.subsidy_amount_rs)}`}
+            sub={`₹18,000/kW for RWA • verify at pmsuryaghar.gov.in`}
+            variant="success"
+            icon={<DollarSign size={18} />}
+          />
+          <MetricCard
+            label="Battery Storage Cost"
+            value={fmtCr(battery.installed_cost_rs)}
+            sub={`${fmt(battery.required_capacity_kwh, 0)} kWh • not subsidised`}
+            icon={<Battery size={18} />}
+            assumption
+          />
+        </div>
+        {/* Net cost breakdown banner */}
+        <div className="glass p-4 mb-4 border border-solar-400/20">
+          <div className="flex flex-wrap items-center gap-2 text-sm">
+            <span className="text-slate-400">Net total investment:</span>
+            <span className="text-slate-300">{fmtCr(financials.gross_installation_cost_rs)}</span>
+            <span className="text-slate-500">(solar)</span>
+            <span className="text-red-400">− {fmtCr(financials.subsidy_amount_rs)}</span>
+            <span className="text-slate-500">(subsidy)</span>
+            <span className="text-slate-300">+ {fmtCr(battery.installed_cost_rs)}</span>
+            <span className="text-slate-500">(battery)</span>
+            <span className="text-white font-bold">=</span>
+            <span className="text-solar-300 font-bold text-base">{fmtCr(financials.net_installation_cost_rs)}</span>
+          </div>
+        </div>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
-          <MetricCard label={t('grossCost')} value={fmtCr(financials.gross_installation_cost_rs)} icon={<DollarSign size={18} />} />
-          <MetricCard label={t('subsidyAmount')} value={`− ${fmtCr(financials.subsidy_amount_rs)}`} variant="success" icon={<DollarSign size={18} />} />
-          <MetricCard label={t('netCost')} value={fmtCr(financials.net_installation_cost_rs)} variant="solar" icon={<DollarSign size={18} />} />
           <MetricCard label={t('payback')} value={`${financials.payback_years} yrs`} variant="success" icon={<TrendingUp size={18} />} />
           <MetricCard label={t('npv')} value={fmtCr(financials.npv_rs)} variant="success" icon={<TrendingUp size={18} />} />
           <MetricCard label={t('savings25yr')} value={fmtCr(financials.year25_savings_rs)} variant="success" icon={<TrendingUp size={18} />} />

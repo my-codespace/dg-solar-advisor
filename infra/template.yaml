@@ -147,13 +147,6 @@ Resources:
       CodeUri: ../backend/analyze/
       Handler: handler.handler
       Description: Runs full DG + solar + financial analysis
-      Policies:
-        - Version: '2012-10-17'
-          Statement:
-            # No S3/DynamoDB needed for pure calculation
-            - Effect: Allow
-              Action: []
-              Resource: '*'
       Events:
         AnalyzePost:
           Type: Api
@@ -188,7 +181,6 @@ Resources:
               Action:
                 - s3:GetObject
                 - s3:PutObject
-                - s3:GeneratePresignedPost
               Resource:
                 - !Sub arn:aws:s3:::${UploadBucket}
                 - !Sub arn:aws:s3:::${UploadBucket}/*
@@ -235,7 +227,9 @@ Resources:
             - Effect: Allow
               Action:
                 - bedrock:InvokeModel
-              Resource: !Sub arn:aws:bedrock:${BedrockRegion}::foundation-model/${BedrockModelId}
+              Resource:
+                - !Sub arn:aws:bedrock:${BedrockRegion}::foundation-model/${BedrockModelId}
+                - arn:aws:bedrock:*::foundation-model/*
       Events:
         ReportPost:
           Type: Api

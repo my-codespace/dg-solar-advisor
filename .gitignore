@@ -39,3 +39,7 @@ samconfig.toml
 *.pem
 *.key
 aws-credentials*
+
+# Internal Local Guides (not for remote repo)
+HANDOFF.md
+DEMO_VIDEO_GUIDE.md

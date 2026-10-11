@@ -100,24 +100,25 @@
 #### 🖥️ What to Show on Screen:
 1. You are on **Step 3: Analysis**.
 2. Point your cursor to the three highlight metric cards:
-   - **DG Cost per Unit:** `₹30.16 / kWh` (highlighted in red)
+   - **DG Cost per Unit:** `₹29.68 / kWh` (highlighted in red)
    - **Grid Tariff:** `₹8.50 / kWh` (orange)
-   - **Solar LCOE:** `₹3.40 / kWh` (emerald green)
-3. Scroll through the graphs:
-   - **NASA POWER Solar Generation Curve** (seasonal monthly generation).
-   - **25-Year Cumulative Cash Flow** (showing the payback point).
-   - **Emissions Avoided** (CO₂, PM2.5, and NOx metrics).
+   - **Solar LCOE:** `₹1.48 / kWh` (emerald green — 95% cheaper than DG!)
+3. Scroll through the graphs and key values:
+   - **Solar Capacity:** `541.4 kWp` generating `6,88,533 kWh` in Year 1 based on NASA POWER irradiance.
+   - **25-Year Cumulative Cash Flow:** Showing the break-even payback line at just `3.6 years`.
+   - **25-Year Savings:** Over `₹21.25 Crore` net savings with a positive NPV of `₹4.99 Crore`.
+   - **Emissions Avoided:** `11,451 tonnes` of CO₂ eliminated over 25 years.
 4. Expand the **Sensitivity Sliders** (e.g. increase Diesel Price or Grid Tariff) and show how the numbers and charts update dynamically in real time!
 5. Click **"Generate Shareable Report →"**.
 
 #### 🗣️ Word-for-Word Spoken Script:
-> *"Step 3 runs our Python calculation engine on AWS Lambda. Look at this comparison: DG power costs this society **₹30.16 per unit**, while rooftop solar generates clean energy at just **₹3.40 per unit**—an 88% reduction in generation cost!*
+> *"Step 3 runs our Python calculation engine on AWS Lambda. Look at this comparison: DG power costs this society **₹29.68 per unit**, while rooftop solar generates clean energy at just **₹1.48 per unit**—that is a massive 95% reduction in generation cost!*
 > 
-> *The solar generation profile is modeled using verified NASA solar flux data. We size a clean Lithium-Ferro-Phosphate (LFP) battery bank to replace the noisy diesel generator during grid outages.*
+> *The solar generation profile is modeled from NASA satellite flux data, yielding over 6.8 lakh units of clean electricity every year from a 541 kWp rooftop system. We also size a clean 75 kWh LFP battery bank to ensure uninterrupted power during outages.*
 > 
-> *On the financial side, we integrate central **PM Surya Ghar Muft Bijli Yojana** subsidies, showing a capital payback in just 4.3 years and over ₹6.5 Crore in net savings over 25 years—while eliminating over 36,000 tonnes of CO₂ emissions.*
+> *On the financial side, factoring in a central PM Surya Ghar subsidy of **₹90 Lakh**, the net installation cost of ₹2.27 Crore achieves full payback in just **3.6 years**—unlocking over **₹21 Crore in net savings** over 25 years while preventing **11,451 tonnes of CO₂ emissions**.*
 > 
-> *With our interactive sensitivity sliders, committee members can stress-test diesel price hikes or grid tariff changes on the fly. Now let's generate the final report."*
+> *With our interactive sensitivity sliders, committee members can stress-test diesel price hikes or grid tariff changes live. Now let's generate the final report."*
 
 ---
 

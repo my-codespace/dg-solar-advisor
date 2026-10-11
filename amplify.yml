@@ -4,11 +4,10 @@ frontend:
   phases:
     preBuild:
       commands:
-        - cd frontend && npm ci
+        - test -d frontend && cd frontend; npm ci
     build:
       commands:
-        - echo "VITE_API_BASE=${VITE_API_BASE:-https://uzok2zqm7c.execute-api.ap-south-1.amazonaws.com/dev}" > frontend/.env.production
-        - cd frontend && npm run build
+        - test -d frontend && cd frontend; npm run build
   artifacts:
     baseDirectory: frontend/dist
     files:

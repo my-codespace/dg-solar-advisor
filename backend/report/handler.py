@@ -186,7 +186,17 @@ def handler(event: dict, context: Any) -> dict:
             item = resp.get("Item")
             if not item:
                 return _resp(404, {"error": f"Report '{report_id}' not found."})
-            return _resp(200, _decimals_to_floats(item))
+            res_item = _decimals_to_floats(item)
+            results = res_item.get("results") or {}
+            merged = {
+                **results,
+                "results": results,
+                "id": res_item.get("id"),
+                "summaryEn": res_item.get("summaryEn"),
+                "summaryHi": res_item.get("summaryHi"),
+                "createdAt": res_item.get("createdAt"),
+            }
+            return _resp(200, merged)
         except ClientError as exc:
             return _resp(500, {"error": f"Database error: {exc}"})
 

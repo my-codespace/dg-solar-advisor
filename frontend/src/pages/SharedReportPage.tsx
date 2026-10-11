@@ -9,8 +9,9 @@ import { Banner } from '../components/UI';
 import { getReport } from '../api';
 import type { AnalysisResponse, Lang } from '../types';
 
-export function SharedReportPage() {
-  const { id } = useParams<{ id: string }>();
+export function SharedReportPage({ reportIdOverride }: { reportIdOverride?: string } = {}) {
+  const { id: routeId } = useParams<{ id: string }>();
+  const id = reportIdOverride || routeId;
   const [lang, setLang] = useState<Lang>('en');
   const [data, setData] = useState<(AnalysisResponse & { summaryEn: string; summaryHi: string }) | null>(null);
   const [loading, setLoading] = useState(true);
@@ -77,7 +78,7 @@ export function SharedReportPage() {
         {data && !loading && (
           <ReportStep
             lang={lang}
-            results={data}
+            results={((data as any).results ? { ...(data as any).results, summaryEn: data.summaryEn, summaryHi: data.summaryHi } : data) as AnalysisResponse}
             reportId={id ?? null}
             summaryEn={data.summaryEn}
             summaryHi={data.summaryHi}

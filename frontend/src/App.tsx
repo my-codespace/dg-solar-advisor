@@ -4,6 +4,7 @@ import { ProfileStep } from './pages/ProfileStep';
 import { DGUsageStep } from './pages/DGUsageStep';
 import { AnalysisStep } from './pages/AnalysisStep';
 import { ReportStep } from './pages/ReportStep';
+import { SharedReportPage } from './pages/SharedReportPage';
 import { Banner } from './components/UI';
 import { analyze, saveReport } from './api';
 import { useT } from './i18n';
@@ -44,6 +45,11 @@ function StepIndicator({ current, lang }: { current: Step; lang: Lang }) {
 
 // ── Main App ──────────────────────────────────────────────────────────────────
 export default function App() {
+  const queryReportId = new URLSearchParams(window.location.search).get('report');
+  if (queryReportId) {
+    return <SharedReportPage reportIdOverride={queryReportId} />;
+  }
+
   const [lang, setLang] = useState<Lang>('en');
   const [step, setStep] = useState<Step>('profile');
   const [profile, setProfile] = useState<Partial<SocietyProfile>>({});

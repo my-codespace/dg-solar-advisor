@@ -89,16 +89,24 @@ export function DGUsageStep({ lang, initialData, batteryOutageHours, criticalLoa
       setUploadState('review');
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
+      const isSubscriptionPending = msg.includes('SubscriptionRequiredException');
       const isApiMissing =
+        isSubscriptionPending ||
         msg.includes('fetch') || msg.includes('network') || msg.includes('Failed to fetch') ||
         msg.includes('500') || msg.includes('404') || msg.includes('VITE_API_BASE') ||
         msg.includes('ERR_CONNECTION') || msg.includes('NetworkError') || !import.meta.env.VITE_API_BASE;
 
       if (isApiMissing || !import.meta.env.VITE_API_BASE) {
-        // AWS not deployed yet — load demo data so the user can still test the flow
+        // AWS service pending or offline — load demo data so user can review and proceed
         setApiUnavailable(true);
-        setExtractResult(DEMO_EXTRACTION);
-        setEditedTable(DEMO_EXTRACTION.tables[0].rows.map(row => row.map(cell => cell.text)));
+        const fallback = {
+          ...DEMO_EXTRACTION,
+          note: isSubscriptionPending
+            ? 'Amazon Textract subscription is currently pending on your AWS account. Showing sample extracted table so you can review and continue.'
+            : DEMO_EXTRACTION.note,
+        };
+        setExtractResult(fallback);
+        setEditedTable(fallback.tables[0].rows.map(row => row.map(cell => cell.text)));
         setUploadError('');
         setUploadState('review');
       } else {

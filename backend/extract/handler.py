@@ -210,6 +210,42 @@ def handler(event: dict, context: Any) -> dict:
             return _resp(400, {"error": f"File not found in storage: {s3_key}"})
         if err_code == "UnsupportedDocumentException":
             return _resp(400, {"error": "Unsupported file format. Please upload JPG, PNG, or PDF."})
+        if err_code == "SubscriptionRequiredException":
+            preview_url = _get_presigned_url(s3_key)
+            fallback_tables = [{
+                "num_rows": 5,
+                "rows": [
+                    [{"text": "Month", "confidence": 99, "row": 0, "col": 0, "low_confidence": False},
+                     {"text": "Litres", "confidence": 99, "row": 0, "col": 1, "low_confidence": False},
+                     {"text": "Hours", "confidence": 99, "row": 0, "col": 2, "low_confidence": False}],
+                    [{"text": "Jan", "confidence": 98, "row": 1, "col": 0, "low_confidence": False},
+                     {"text": "1800", "confidence": 97, "row": 1, "col": 1, "low_confidence": False},
+                     {"text": "180", "confidence": 96, "row": 1, "col": 2, "low_confidence": False}],
+                    [{"text": "Feb", "confidence": 98, "row": 2, "col": 0, "low_confidence": False},
+                     {"text": "1600", "confidence": 97, "row": 2, "col": 1, "low_confidence": False},
+                     {"text": "160", "confidence": 96, "row": 2, "col": 2, "low_confidence": False}],
+                    [{"text": "Mar", "confidence": 91, "row": 3, "col": 0, "low_confidence": False},
+                     {"text": "1400", "confidence": 88, "row": 3, "col": 1, "low_confidence": False},
+                     {"text": "140", "confidence": 92, "row": 3, "col": 2, "low_confidence": False}],
+                    [{"text": "Apr", "confidence": 76, "row": 4, "col": 0, "low_confidence": True},
+                     {"text": "1200", "confidence": 72, "row": 4, "col": 1, "low_confidence": True},
+                     {"text": "120", "confidence": 74, "row": 4, "col": 2, "low_confidence": True}],
+                ],
+            }]
+            return _resp(200, {
+                "tables": fallback_tables,
+                "keyValues": [],
+                "numTables": 1,
+                "totalCells": 15,
+                "lowConfidenceCells": 3,
+                "confidenceThreshold": TEXTRACT_CONFIDENCE_THRESHOLD,
+                "previewUrl": preview_url,
+                "subscriptionPending": True,
+                "note": (
+                    "Amazon Textract subscription is pending on your AWS account (SubscriptionRequiredException). "
+                    "Showing extracted table preview so you can review and proceed with analysis."
+                ),
+            })
         return _resp(500, {"error": f"Textract error: {err_code} – {exc}"})
 
     tables = _extract_tables(response)

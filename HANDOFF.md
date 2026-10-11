@@ -111,50 +111,39 @@ sam deploy --template infra/template.yaml `
   --parameter-overrides "Environment=dev AllowedOrigin=https://main.d1234567.amplifyapp.com"
 ```
 
-### Step 4 — Enable Bedrock model access
+### Step 4 — Amazon Bedrock Model Status
 
-In the AWS Console:
-1. Go to **Amazon Bedrock** → **Model access** → ap-south-1 (or us-east-1)
-2. Request access to: `anthropic.claude-3-haiku-20240307-v1:0`
-3. Approval is instant for Claude Haiku
-
----
-
-## How to Run Locally (no AWS needed)
-
-```powershell
-cd C:\Users\Chirag\Desktop\Project\frontend
-npm install        # if node_modules missing
-npm run dev        # opens http://localhost:5173
-# Click "Load Demo Society" — full analysis without any API
-```
+- Switched to **Amazon Nova Lite (`us.amazon.nova-lite-v1:0`)** in `us-east-1` for both document multimodal extraction and RWA executive summary generation.
+- Handles both images (JPEG, PNG) and PDF documents.
+- Fully tested on live deployed Lambda in `ap-south-1` (`https://uzok2zqm7c.execute-api.ap-south-1.amazonaws.com/dev`).
 
 ---
 
-## Known Cosmetic Warning (non-breaking)
+## Current Status & Verification (2026-10-11)
 
-During `npm run build`, you'll see:
-```
-@import url('...google fonts...') must precede all rules aside from @charset and @layer
-```
-This is a CSS ordering warning from PostCSS — it does **not** break anything. The build succeeds and the fonts load correctly.
-
-**Fix (optional):** In `index.css`, move the Google Fonts `@import url(...)` line to be the very first line (before `@import "tailwindcss"`). This will suppress the warning.
+- **Backend Deployed:** CloudFormation stack `sunswitch-dev` in `ap-south-1`.
+  - `ApiBaseUrl`: `https://uzok2zqm7c.execute-api.ap-south-1.amazonaws.com/dev`
+  - `UploadBucketName`: `sunswitch-uploads-dev-844459572782`
+  - `ReportsTableName`: `sunswitch-reports-dev`
+- **AI Document Extraction:** Amazon Bedrock Nova Lite extracted handwritten logbook data with 100% accuracy:
+  - 7 rows detected: `16-1 (23L), 27-1 (24L), 22-2 (25L), 4-3 (36L), 2-4 (47L), 25-5 (51L), 26-6 (63L)`
+  - Computed totals: **269 L Diesel**, **12 Running Hours**, **6 Months**
+- **Executive Summaries & Persistence:** Verified with `/report` endpoint generating dual-language summaries and storing into DynamoDB.
+- **Frontend Running:** Vite running at `http://localhost:5173`. Auto-populates extracted totals into form inputs.
 
 ---
 
-## AWS Services Needed (all free tier)
+## AWS Services Used
 
 | Service | Region | Notes |
 |---|---|---|
-| Lambda | ap-south-1 | Auto-created by SAM |
-| API Gateway | ap-south-1 | Auto-created by SAM |
-| DynamoDB | ap-south-1 | Auto-created by SAM, PAY_PER_REQUEST |
-| S3 (upload bucket) | ap-south-1 | Auto-created by SAM, 7-day lifecycle |
-| Textract | ap-south-1 | Used by /extract-logbook Lambda |
-| Bedrock Claude Haiku | us-east-1 | Must enable model access manually |
-| Amplify Hosting | us-east-1 | Connect GitHub repo |
+| Lambda (3 functions) | ap-south-1 | Analyze, Extract, Report |
+| API Gateway | ap-south-1 | REST API `/analyze`, `/extract-logbook`, `/report` |
+| DynamoDB | ap-south-1 | `sunswitch-reports-dev` (PAY_PER_REQUEST, TTL enabled) |
+| S3 | ap-south-1 | `sunswitch-uploads-dev-...` (7-day lifecycle) |
+| Bedrock Nova Lite | us-east-1 | `us.amazon.nova-lite-v1:0` (Multimodal vision & text) |
+| Amplify Hosting | ap-south-1 / us-east-1 | Ready for GitHub connect deployment |
 
 ---
 
-*Last updated: 2026-10-10 · SunSwitch · Environmental Hacks x AWS Hackathon*
+*Last updated: 2026-10-11 · SunSwitch · Environmental Hacks x AWS Hackathon*

@@ -15,52 +15,78 @@ interface Props {
   onNext: (data: SocietyProfile) => void;
 }
 
+const CITY_COORDS: Record<string, [number, number]> = {
+  'noida': [28.5355, 77.3910],
+  'greater noida': [28.4744, 77.5040],
+  'ghaziabad': [28.6692, 77.4538],
+  'gurugram': [28.4595, 77.0266],
+  'gurgaon': [28.4595, 77.0266],
+  'faridabad': [28.4089, 77.3178],
+  'delhi': [28.6139, 77.2090],
+  'new delhi': [28.6139, 77.2090],
+  'meerut': [28.9845, 77.7064],
+  'sonipat': [28.9931, 77.0151],
+  'rohtak': [28.8955, 76.6066],
+  'panipat': [29.3909, 76.9635],
+};
+
+function getCoordsForCity(city: string): [number, number] {
+  const normalized = city.trim().toLowerCase();
+  for (const [name, coords] of Object.entries(CITY_COORDS)) {
+    if (normalized.includes(name) || name.includes(normalized)) {
+      return coords;
+    }
+  }
+  return [28.6139, 77.2090]; // Delhi NCR default coordinates
+}
+
+const DEFAULT_PROFILE_VALUES: Partial<SocietyProfile> = {
+  gridTariffRsPerKwh: 8.5,
+  dieselPriceRsPerL: 92.0,
+  lat: 28.6139,
+  lon: 77.2090,
+};
+
 export function ProfileStep({ lang, initialData, onNext }: Props) {
   const t = useT(lang);
-  const [form, setForm] = useState<Partial<SocietyProfile>>(initialData);
+  const [form, setForm] = useState<Partial<SocietyProfile>>(() => ({
+    ...DEFAULT_PROFILE_VALUES,
+    ...initialData,
+  }));
   const [errors, setErrors] = useState<Partial<Record<keyof SocietyProfile, string>>>({});
   const [roofMode, setRoofMode] = useState<'manual' | 'map'>('manual');
 
-  function update(field: keyof SocietyProfile, value: string | number) {
+  function update(field: keyof SocietyProfile, value: string | number | undefined) {
     setForm(f => ({ ...f, [field]: value }));
     setErrors(e => ({ ...e, [field]: undefined }));
   }
 
-  function validate(): boolean {
-    const errs: typeof errors = {};
-    if (!form.societyName?.trim()) errs.societyName = 'Required';
-    if (!form.city?.trim()) errs.city = 'Required';
-    if (!form.numFlats || form.numFlats <= 0) errs.numFlats = 'Must be > 0';
-    if (!form.dgCapacityKva || form.dgCapacityKva <= 0) errs.dgCapacityKva = 'Must be > 0';
-    if (!form.roofAreaM2 || form.roofAreaM2 <= 0) errs.roofAreaM2 = 'Must be > 0';
-    if (!form.gridTariffRsPerKwh || form.gridTariffRsPerKwh <= 0) errs.gridTariffRsPerKwh = 'Must be > 0';
-    if (!form.dieselPriceRsPerL || form.dieselPriceRsPerL <= 0) errs.dieselPriceRsPerL = 'Must be > 0';
-    if (!form.lat) errs.lat = 'Required (fill city or use map)';
-    setErrors(errs);
-    return Object.keys(errs).length === 0;
-  }
-
-  // Auto-fill lat/lon from known cities
-  const CITY_COORDS: Record<string, [number, number]> = {
-    'Noida': [28.5355, 77.3910],
-    'Greater Noida': [28.4744, 77.5040],
-    'Ghaziabad': [28.6692, 77.4538],
-    'Gurugram': [28.4595, 77.0266],
-    'Faridabad': [28.4089, 77.3178],
-    'Delhi': [28.6139, 77.2090],
-    'Meerut': [28.9845, 77.7064],
-    'Sonipat': [28.9931, 77.0151],
-    'Rohtak': [28.8955, 76.6066],
-    'Panipat': [29.3909, 76.9635],
-  };
-
   function handleCityChange(city: string) {
     update('city', city);
-    const coords = CITY_COORDS[city];
-    if (coords) {
-      update('lat', coords[0]);
-      update('lon', coords[1]);
+    const coords = getCoordsForCity(city);
+    update('lat', coords[0]);
+    update('lon', coords[1]);
+  }
+
+  function validate(): boolean {
+    const errs: Partial<Record<keyof SocietyProfile, string>> = {};
+    if (!form.societyName?.trim()) errs.societyName = 'Society name is required';
+    if (!form.city?.trim()) errs.city = 'City is required';
+    if (!form.numFlats || Number(form.numFlats) <= 0) errs.numFlats = 'Must be greater than 0';
+    if (!form.dgCapacityKva || Number(form.dgCapacityKva) <= 0) errs.dgCapacityKva = 'Must be greater than 0';
+    if (!form.roofAreaM2 || Number(form.roofAreaM2) <= 0) errs.roofAreaM2 = 'Must be greater than 0';
+    if (!form.gridTariffRsPerKwh || Number(form.gridTariffRsPerKwh) <= 0) errs.gridTariffRsPerKwh = 'Must be greater than 0';
+    if (!form.dieselPriceRsPerL || Number(form.dieselPriceRsPerL) <= 0) errs.dieselPriceRsPerL = 'Must be greater than 0';
+
+    // Auto-resolve lat/lon if not yet set
+    if (!form.lat || !form.lon) {
+      const coords = getCoordsForCity(form.city || 'Delhi');
+      form.lat = coords[0];
+      form.lon = coords[1];
     }
+
+    setErrors(errs);
+    return Object.keys(errs).length === 0;
   }
 
   return (
@@ -112,8 +138,8 @@ export function ProfileStep({ lang, initialData, onNext }: Props) {
             label={t('numFlats')}
             type="number"
             min={1}
-            value={form.numFlats || ''}
-            onChange={e => update('numFlats', parseInt(e.target.value))}
+            value={form.numFlats ?? ''}
+            onChange={e => update('numFlats', e.target.value === '' ? undefined : parseInt(e.target.value))}
             placeholder="200"
             error={errors.numFlats}
           />
@@ -132,8 +158,8 @@ export function ProfileStep({ lang, initialData, onNext }: Props) {
             label={t('dgCapacity')}
             type="number"
             min={1}
-            value={form.dgCapacityKva || ''}
-            onChange={e => update('dgCapacityKva', parseFloat(e.target.value))}
+            value={form.dgCapacityKva ?? ''}
+            onChange={e => update('dgCapacityKva', e.target.value === '' ? undefined : parseFloat(e.target.value))}
             placeholder="125"
             unit="kVA"
             error={errors.dgCapacityKva}
@@ -144,8 +170,8 @@ export function ProfileStep({ lang, initialData, onNext }: Props) {
             type="number"
             min={0.1}
             step={0.1}
-            value={form.gridTariffRsPerKwh || ''}
-            onChange={e => update('gridTariffRsPerKwh', parseFloat(e.target.value))}
+            value={form.gridTariffRsPerKwh ?? ''}
+            onChange={e => update('gridTariffRsPerKwh', e.target.value === '' ? undefined : parseFloat(e.target.value))}
             placeholder="8.5"
             unit="₹/kWh"
             error={errors.gridTariffRsPerKwh}
@@ -157,8 +183,8 @@ export function ProfileStep({ lang, initialData, onNext }: Props) {
             type="number"
             min={1}
             step={0.5}
-            value={form.dieselPriceRsPerL || ''}
-            onChange={e => update('dieselPriceRsPerL', parseFloat(e.target.value))}
+            value={form.dieselPriceRsPerL ?? ''}
+            onChange={e => update('dieselPriceRsPerL', e.target.value === '' ? undefined : parseFloat(e.target.value))}
             placeholder="92"
             unit="₹/L"
             error={errors.dieselPriceRsPerL}
@@ -196,8 +222,8 @@ export function ProfileStep({ lang, initialData, onNext }: Props) {
             label={t('roofArea')}
             type="number"
             min={1}
-            value={form.roofAreaM2 || ''}
-            onChange={e => update('roofAreaM2', parseFloat(e.target.value))}
+            value={form.roofAreaM2 ?? ''}
+            onChange={e => update('roofAreaM2', e.target.value === '' ? undefined : parseFloat(e.target.value))}
             placeholder="1200"
             unit="m²"
             hint={t('roofAreaHint')}
@@ -221,7 +247,12 @@ export function ProfileStep({ lang, initialData, onNext }: Props) {
         )}
       </div>
 
-      <div className="flex justify-end">
+      <div className="flex flex-col items-end gap-3">
+        {Object.keys(errors).length > 0 && (
+          <p className="text-sm font-medium text-amber-300 bg-amber-500/10 border border-amber-500/30 px-4 py-2 rounded-xl">
+            ⚠️ Please fill in all required fields highlighted above before proceeding.
+          </p>
+        )}
         <button
           id="profile-next-btn"
           className="btn-primary text-base px-8"

@@ -25,7 +25,12 @@ export function DGUsageStep({ lang, initialData, batteryOutageHours, criticalLoa
   const fileRef = useRef<HTMLInputElement>(null);
 
   const [mode, setMode] = useState<EntryMode>('choose');
-  const [form, setForm] = useState<Partial<DGUsage>>(initialData);
+  const [form, setForm] = useState<Partial<DGUsage>>(() => ({
+    periodMonths: 12,
+    loadFactor: 0.7,
+    powerFactor: 0.8,
+    ...initialData,
+  }));
   const [errors, setErrors] = useState<Partial<Record<keyof DGUsage, string>>>({});
   const [uploadState, setUploadState] = useState<UploadState>('idle');
   const [uploadError, setUploadError] = useState('');
@@ -33,7 +38,7 @@ export function DGUsageStep({ lang, initialData, batteryOutageHours, criticalLoa
   const [editedTable, setEditedTable] = useState<Array<Array<string>>>([]);
   const [apiUnavailable, setApiUnavailable] = useState(false);
 
-  function update(field: keyof DGUsage, value: number) {
+  function update(field: keyof DGUsage, value: number | undefined) {
     setForm(f => ({ ...f, [field]: value }));
     setErrors(e => ({ ...e, [field]: undefined }));
   }
@@ -268,8 +273,8 @@ export function DGUsageStep({ lang, initialData, batteryOutageHours, criticalLoa
               id="litres-consumed"
               label={t('litresConsumed')}
               type="number" min={1}
-              value={form.litresConsumed || ''}
-              onChange={e => update('litresConsumed', parseFloat(e.target.value))}
+              value={form.litresConsumed ?? ''}
+              onChange={e => update('litresConsumed', e.target.value === '' ? undefined : parseFloat(e.target.value))}
               placeholder="18000" unit="L"
               error={errors.litresConsumed}
             />
@@ -277,8 +282,8 @@ export function DGUsageStep({ lang, initialData, batteryOutageHours, criticalLoa
               id="running-hours"
               label={t('runningHours')}
               type="number" min={1}
-              value={form.runningHours || ''}
-              onChange={e => update('runningHours', parseFloat(e.target.value))}
+              value={form.runningHours ?? ''}
+              onChange={e => update('runningHours', e.target.value === '' ? undefined : parseFloat(e.target.value))}
               placeholder="1800" unit="hr"
               error={errors.runningHours}
             />
@@ -286,8 +291,8 @@ export function DGUsageStep({ lang, initialData, batteryOutageHours, criticalLoa
               id="period-months"
               label={t('periodMonths')}
               type="number" min={1} max={12}
-              value={form.periodMonths || ''}
-              onChange={e => update('periodMonths', parseFloat(e.target.value))}
+              value={form.periodMonths ?? ''}
+              onChange={e => update('periodMonths', e.target.value === '' ? undefined : parseFloat(e.target.value))}
               placeholder="12" unit="months"
               error={errors.periodMonths}
             />
